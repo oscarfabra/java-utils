@@ -32,12 +32,12 @@ public class Combinations
     /**
      * Finds and returns all possible subset combinations of a given Set of
      * numbers and subsets size k.
-     * @param subset List of numbers to find combinations for, subsets in
+     * @param subsetList List of numbers to find combinations for, subsets in
      *               {1,2,...,n}, n = subset.size()
      * @param k Size of permutations to find, 2 <= k <= subset.size()
      * @return List of subsets of the given list of integers.
      */
-    public static List<Set<Integer>> solve(List<Integer> subset, int k)
+    public static List<Set<Integer>> solve(List<Integer> subsetList, int k)
     {
         // Returns result depending on base cases.
         List<Set<Integer>> allSubsets = new ArrayList<Set<Integer>> ();
@@ -47,14 +47,14 @@ public class Combinations
             allSubsets.add(new TreeSet<Integer>());
             return allSubsets;
         }
-        if(k > subset.size())
+        if(k > subsetList.size())
         {
             // Nothing to add. Base case needed in order to keep items ordered.
             return allSubsets;
         }
 
         // Creates a copy of the subset with last item removed.
-        List<Integer> subsetWithoutX = new ArrayList<Integer>(subset);
+        List<Integer> subsetWithoutX = new ArrayList<Integer>(subsetList);
         int size = subsetWithoutX.size();
         Integer x = subsetWithoutX.remove(size - 1);
 

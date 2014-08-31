@@ -1,7 +1,7 @@
 /**
  * $Id: BigMatrix.java, v1.0 11/08/14 01:25 PM oscarfabra Exp $
- * {@code BigMatrix} is a class that represents an 2-D matrix to use for
- * computing 2-D arrays with very large number of rows and columns.
+ * {@code BigMatrix} is a class that represents an 2-D array to use for
+ * working with 2-D arrays that have very large number of rows and columns.
  *
  * @author <a href="mailto:oscarfabra@gmail.com">Oscar Fabra</a>
  * @version 1.0
@@ -12,8 +12,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * BigMatrix represents a 2-D array to use for working with 2-D arrays with 
- * VERY large number of rows and columns.
+ * BigMatrix represents a 2-D array to use for working with 2-D arrays that
+ * have VERY large number of rows and columns.
  */
 public class BigMatrix
 {
@@ -29,7 +29,7 @@ public class BigMatrix
     //-------------------------------------------------------------------------
 
     // List of smaller partitioned tables
-    private List<int[][]> bigMatrix = null;
+    private List<double[][]> bigMatrix = null;
 
     // Number of columns' partitions of the bigMatrix
     private int colsPartitions;
@@ -54,7 +54,7 @@ public class BigMatrix
         this.colsPartitions = (columns % PARTITION_SIDE == 0) ?
                 columns / PARTITION_SIDE : (columns / PARTITION_SIDE) + 1;
         int size = this.rowsPartitions * this.colsPartitions;
-        this.bigMatrix = new ArrayList<int[][]>(size);
+        this.bigMatrix = new ArrayList<double[][]>(size);
         for(int i = 0; i < size; i++)
         {
             int newCols = PARTITION_SIDE;
@@ -67,7 +67,7 @@ public class BigMatrix
             {
                 newRows = rows % PARTITION_SIDE;
             }
-            this.bigMatrix.add(new int[newRows][newCols]);
+            this.bigMatrix.add(new double[newRows][newCols]);
         }
     }
 
@@ -79,9 +79,9 @@ public class BigMatrix
      * Sets the specified element at the given indices.
      * @param row Row position, row in [0, 1, ..., rows - 1]
      * @param column Column position, column in [0, 1, ..., columns - 1]
-     * @param item Integer to add to the BigMatrix.
+     * @param item Number to add to the BigMatrix.
      */
-    public void set(int row, int column, int item)
+    public void set(int row, int column, double item)
     {
         // Finds the small table in which to store the item
         int rowPartition = row / PARTITION_SIDE;
@@ -92,7 +92,7 @@ public class BigMatrix
 
         // Gets the table in which to store the item, stores the item and
         // updates the list
-        int [][] smallMatrix = this.bigMatrix.get(bigIndex);
+        double [][] smallMatrix = this.bigMatrix.get(bigIndex);
         smallMatrix[itemRow][itemCol] = item;
         this.bigMatrix.set(bigIndex, smallMatrix);
     }
@@ -101,9 +101,9 @@ public class BigMatrix
      * Returns the element of the BigMatrix at the specified position.
      * @param row Row position, row in [0, 1, ..., rows - 1]
      * @param column Column position, column in [0, 1, ..., columns - 1]
-     * @return Integer at the given position.
+     * @return Number at the given position.
      */
-    public int get(int row, int column)
+    public double get(int row, int column)
     {
         // Finds small table in which to store the item
         int rowPartition = row / PARTITION_SIDE;
@@ -113,7 +113,7 @@ public class BigMatrix
         int bigIndex = rowPartition * this.colsPartitions + colPartition;
 
         // Gets the table from which to retrieve the item and retrieves it
-        int [][] smallMatrix = this.bigMatrix.get(bigIndex);
+        double [][] smallMatrix = this.bigMatrix.get(bigIndex);
         return smallMatrix[itemRow][itemCol];
     }
 }
