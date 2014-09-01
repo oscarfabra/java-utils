@@ -29,7 +29,7 @@ public class BigMatrix
     //-------------------------------------------------------------------------
 
     // List of smaller partitioned tables
-    private List<double[][]> bigMatrix = null;
+    private List<float[][]> bigMatrix = null;
 
     // Number of columns' partitions of the bigMatrix
     private int colsPartitions;
@@ -54,7 +54,7 @@ public class BigMatrix
         this.colsPartitions = (columns % PARTITION_SIDE == 0) ?
                 columns / PARTITION_SIDE : (columns / PARTITION_SIDE) + 1;
         int size = this.rowsPartitions * this.colsPartitions;
-        this.bigMatrix = new ArrayList<double[][]>(size);
+        this.bigMatrix = new ArrayList<float[][]>(size);
         for(int i = 0; i < size; i++)
         {
             int newCols = PARTITION_SIDE;
@@ -67,7 +67,7 @@ public class BigMatrix
             {
                 newRows = rows % PARTITION_SIDE;
             }
-            this.bigMatrix.add(new double[newRows][newCols]);
+            this.bigMatrix.add(new float[newRows][newCols]);
         }
     }
 
@@ -81,7 +81,7 @@ public class BigMatrix
      * @param column Column position, column in [0, 1, ..., columns - 1]
      * @param item Number to add to the BigMatrix.
      */
-    public void set(int row, int column, double item)
+    public void set(int row, int column, float item)
     {
         // Finds the small table in which to store the item
         int rowPartition = row / PARTITION_SIDE;
@@ -92,7 +92,7 @@ public class BigMatrix
 
         // Gets the table in which to store the item, stores the item and
         // updates the list
-        double [][] smallMatrix = this.bigMatrix.get(bigIndex);
+        float [][] smallMatrix = this.bigMatrix.get(bigIndex);
         smallMatrix[itemRow][itemCol] = item;
         this.bigMatrix.set(bigIndex, smallMatrix);
     }
@@ -103,7 +103,7 @@ public class BigMatrix
      * @param column Column position, column in [0, 1, ..., columns - 1]
      * @return Number at the given position.
      */
-    public double get(int row, int column)
+    public float get(int row, int column)
     {
         // Finds small table in which to store the item
         int rowPartition = row / PARTITION_SIDE;
@@ -113,7 +113,7 @@ public class BigMatrix
         int bigIndex = rowPartition * this.colsPartitions + colPartition;
 
         // Gets the table from which to retrieve the item and retrieves it
-        double [][] smallMatrix = this.bigMatrix.get(bigIndex);
+        float [][] smallMatrix = this.bigMatrix.get(bigIndex);
         return smallMatrix[itemRow][itemCol];
     }
 }
