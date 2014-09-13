@@ -1,17 +1,13 @@
 /**
- * $Id: Graph.java, v 1.1 14/08/14 20:42 oscarfabra Exp $
+ * $Id: Graph.java, v 1.4 14/08/14 20:42 oscarfabra Exp $
  * {@code Graph} Represents a directed graph with n vertices and m edges.
  *
  * @author <a href="mailto:oscarfabra@gmail.com">Oscar Fabra</a>
- * @version 1.3
+ * @version 1.4
  * @since 14/08/14
  */
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 /**
  * Represents a directed graph with n vertices and m edges.
@@ -129,7 +125,7 @@ public class Graph
             String[] values = line.split(" ");
             int key = Integer.parseInt(values[0]);
             int value = Integer.parseInt(values[1]);
-            int cost = Integer.parseInt(values[2]);
+            float cost = Float.parseFloat(values[2]);
             Edge edge = new Edge(newEdgeId++, key, value, cost);
             Graph.addVertexEdge(vertexEdges, key, edge);
         }
@@ -367,5 +363,48 @@ public class Graph
         }
         adjEdgesIds.add(edge.getId());
         vertexEdgesArriving.put(vertexId, adjEdgesIds);
+    }
+
+    /**
+     * Removes the vertex with the given id including its incident edges.
+     * @param vertexId Id of the vertex to remove.
+     */
+    public void removeVertex(int vertexId)
+    {
+        // Removes edges leaving of vertex with the given id
+        List<Integer> incidentEdges = null;
+        if(this.vertexEdgesLeaving.containsKey(vertexId))
+        {
+            incidentEdges = this.vertexEdgesLeaving.remove(vertexId);
+        }
+        else
+        {
+            incidentEdges = new ArrayList<Integer>();
+        }
+
+        // Removes edges arriving of edges with the given id
+        if(this.vertexEdgesArriving.containsKey(vertexId))
+        {
+            incidentEdges.addAll(this.vertexEdgesArriving.remove(vertexId));
+        }
+
+        // If no incident edges found, there's nothing to remove
+        if(incidentEdges != null)
+        {
+            // Removes the incident edges and updates m
+            Iterator<Integer> iterator = incidentEdges.iterator();
+            while(iterator.hasNext())
+            {
+                this.E.remove(iterator.next());
+            }
+            this.m = this.E.size();
+
+            // Removes the given vertex for V and updates n
+            if(this.V.containsKey(vertexId))
+            {
+                this.V.remove(vertexId);
+                this.n = this.V.size();
+            }
+        }
     }
 }
