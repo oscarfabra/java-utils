@@ -118,7 +118,7 @@ public class QuickSort
      */
     private static void sort(int[] a, int lb, int ub)
     {
-        if(ub >= lb){ return; }
+        if(lb >= ub){ return; }
         int p = partitionFirst(a, lb, ub);
         sort(a, lb, p - 1);
         sort(a, p + 1, ub);

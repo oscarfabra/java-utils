@@ -28,6 +28,9 @@ public class Knapsack
     // manner or optimized for big numbers
     public static final int THRESHOLD = 100000;
 
+    // Sets the biggest weight possible for the knapsack
+    public static final int MAX_WEIGHT = 1000000;
+
     //-------------------------------------------------------------------------
     // ATTRIBUTES
     //-------------------------------------------------------------------------
@@ -74,22 +77,54 @@ public class Knapsack
      * @param items List of items.
      * @param W Knapsack size.
      * @param n Number of items.
+     * @param e Error margin acceptable for solution, e in [0...1.0)
      * @return Value of the optimal solution.
      */
-    public static int solve(List<Item> items, int W, int n)
+    public static int solve(List<Item> items, int W, int n, float e)
     {
-        // Determines whether to solve the problem using a straightforward
-        // implementation or one that's optimized for big numbers
-        int value;
-        long compare = Long.valueOf(W + 1) * Long.valueOf(n + 1);
-        if(Knapsack.THRESHOLD >= compare)
+        // If no error margin is allowed, use the (trivial) dynamic programming
+        // approach
+        int value = 0;
+        if(e == 0.0)
         {
-            value = Knapsack.solveStraightforward(items, W, n);
+            // Determines whether to solve the problem using a straightforward
+            // implementation or one that's optimized for big numbers
+            long compare = Long.valueOf(W + 1) * Long.valueOf(n + 1);
+            if(Knapsack.THRESHOLD >= compare)
+            {
+                value = Knapsack.solveStraightforward(items, W, n);
+            }
+            else
+            {
+                value = Knapsack.solveForBigData(items, W, n);
+            }
         }
         else
         {
-            value = Knapsack.solveForBigData(items, W, n);
+            // Determines whether to use a greedy heuristic (fastest of all) or
+            // a dynamic programming heuristic based on the given e.
+
+            // Finds w_max, i.e., the weight of the heaviest item
+            int i = 0;
+            int maxWeight = 0;
+            for(Item item : items)
+            {
+                if(item.getWeight() > maxWeight)
+                {
+                    maxWeight = item.getWeight();
+                }
+            }
+            // If heaviest item is at most e * W, use a greedy heuristic
+            if(maxWeight <= e * W)
+            {
+                value = Knapsack.solveGreedyHeuristic(items, W, n);
+            }
+            else    // Otherwise, use the dynamic programming heuristic
+            {
+                value = Knapsack.solveDPHeuristic(items, W, n, e);
+            }
         }
+
         // Returns the value
         return value;
     }
@@ -108,8 +143,9 @@ public class Knapsack
     //-------------------------------------------------------------------------
 
     /**
-     * Solves the knapsack problem using a straightforward implementation and
-     * updates the selectedItems class list for later retrieval.
+     * Solves the knapsack problem using a straightforward (exact) dynamic
+     * programming implementation and updates the selectedItems class list for
+     * later retrieval.
      * @param items Array of items.
      * @param W Knapsack size.
      * @param n Number of items.
@@ -209,5 +245,111 @@ public class Knapsack
 
         // Returns the value of the optimal solution
         return a[W].get(0);
+    }
+
+    /**
+     * Solves the knapsack problem using a greedy heuristic approach.
+     * @param items Array of items.
+     * @param W Knapsack size.
+     * @param n Number of items.
+     * @return Value of an acceptable solution (can be the optimal).
+     */
+    private static int solveGreedyHeuristic(List<Item> items, int W, int n)
+    {
+        // Sorts items in decreasing order of their "bang per buck" ratios
+        QuickBuck.sort(items, n);
+
+        // Packs items in this order until one doesn't fit, then halt
+        Knapsack.selectedItems = new ArrayList<Item>(n / 2);
+        int weightSoFar = 0;
+        int value = 0;
+        for(Item item : items)
+        {
+            if(item.getWeight() <= (W - weightSoFar))
+            {
+                Knapsack.selectedItems.add(item);
+                value += item.getValue();
+                weightSoFar += item.getWeight();
+            }
+            else    // Element doesn't fit, so halt
+            {
+                break;
+            }
+        }
+
+        // Returns the total value of the packed items
+        return value;
+    }
+
+    /**
+     * Solves the knapsack problem using a dynamic programming heuristic.
+     * @param items List of items.
+     * @param W Knapsack size.
+     * @param n Number of items.
+     * @param e Error margin acceptable for solution, e in [0...1.0)
+     * @return Value of an acceptable solution (can be the optimal).
+     */
+    private static int solveDPHeuristic(List<Item> items, int W, int n, float e)
+    {
+        // Finds the biggest value
+        int vMax = 0;
+        for(Item item : items)
+        {
+            if(item.getValue() > vMax)
+            {
+                vMax = item.getValue();
+            }
+        }
+
+        // Initializes 2-D array
+        int [][] a = new int[n][n * vMax];
+        for(int x = 0; x < n * vMax; x++)
+        {
+            a[0][x] = Knapsack.MAX_WEIGHT;
+        }
+        a[0][0] = 0;
+
+        // Walks through the 2-D array solving the corresponding subproblems.
+        // a[i][x] contains the minimum total size needed to achieve value >= x
+        // while using only the first i items
+        for(int i = 1; i < n; i++)
+        {
+            Item item = items.get(i);
+            int value = item.getValue();
+            int weight = item.getWeight();
+            boolean halt = true;
+            for(int x = 0; x < n * vMax; x++)
+            {
+                int secondCase = weight;
+                secondCase += (value >= x)? a[i - 1][0]: a[i - 1][x - value];
+                if (secondCase > Knapsack.MAX_WEIGHT)
+                {
+                    secondCase = Knapsack.MAX_WEIGHT;
+                }
+                a[i][x] = Math.min(a[i - 1][x], secondCase);
+
+                // Checks whether to halt after this x-loop
+                if((a[i - 1][x] <= W) || (secondCase <= W))
+                {
+                    halt = false;
+                }
+            }
+            // halts if no more loops required (all values are bigger than W)
+            if(halt)
+            {
+                break;
+            }
+        }
+
+        // Finds and returns the largest x such that a[n - 1][x] <= W
+        int largestX = 0;
+        for(int x = 0; (x < n * vMax) && (a[n - 1][x] <= W) ; x++)
+        {
+            if(a[n - 1][x] <= W)
+            {
+                largestX = x;
+            }
+        }
+        return largestX;
     }
 }
