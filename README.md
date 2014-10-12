@@ -1,4 +1,4 @@
 java-utils
 ==========
 
-Utilities for building Java-based applications
+Utilities for building Java applications
